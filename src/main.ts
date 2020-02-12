@@ -18,7 +18,7 @@ export class Main {
     items: Todo[] = [];
     
 
-    deleteHandler(position:number){
+    deleteHandler(){
         let list = document.getElementsByTagName("LI");
         for(let i = 0; i < list.length; i++){
             list[i].addEventListener("click", ((item) => {
