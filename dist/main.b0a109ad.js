@@ -201,84 +201,121 @@ function () {
     this.service = service;
   }
 
-  Main.prototype.deleteHandler = function (position) {
+  Main.prototype.sortHandler = function () {
     var list = document.getElementsByTagName("LI");
 
     for (var i = 0; i < list.length; i++) {
-      list[i].addEventListener("click", function (item) {
-        return function () {
-          console.log(item);
-        };
-      }(i));
+      this.items.reverse();
+      this.items.sort(function (a, b) {
+        if (a.IsCompleted) {
+          return 1;
+        } else if (b.IsCompleted) {
+          return -1;
+        }
+      });
+    }
+
+    console.log(this.items);
+  };
+
+  Main.prototype.deleteHandler = function () {
+    var _this = this;
+
+    var list = document.getElementsByTagName("LI");
+
+    var _loop_1 = function _loop_1(i) {
+      document.getElementById("close" + i).addEventListener("click", function () {
+        _this.items.splice(i, 1);
+
+        _this.printTodos();
+
+        _this.strikeThrough();
+
+        _this.deleteButton();
+
+        _this.deleteHandler();
+      });
+    };
+
+    for (var i = 0; i < list.length; i++) {
+      _loop_1(i);
     }
   };
 
   Main.prototype.deleteButton = function () {
-    var myNodeList = document.getElementsByTagName("LI");
+    var list = document.getElementsByTagName("LI");
 
-    for (var i = 0; i < myNodeList.length; i++) {
+    for (var i = 0; i < list.length; i++) {
       var span = document.createElement("SPAN");
       var txt = document.createTextNode("\xD7");
-      span.id = "close";
+      span.setAttribute("id", "close" + i);
       span.appendChild(txt);
-      myNodeList[i].appendChild(span);
+      list[i].appendChild(span);
     }
   };
 
   Main.prototype.createTodos = function () {
     var li = document.createElement("LI");
-    var check = document.createElement("INPUT");
-    check.type = "checkbox";
-    check.id = "myCheckbox";
-    check.value = "";
-    var inputValue = document.getElementById("todoText").value;
+    var inputValue = document.getElementById("todoText").value.trim();
     var text = document.createTextNode(inputValue);
     var array = new todo_1.Todo(inputValue, false);
     array.Text = inputValue;
     this.items.push(array);
-    var newItems = this.service.getTodo().concat(this.items);
-    li.appendChild(check);
     li.appendChild(text);
 
     if (inputValue === '') {
       alert("You must write a task before click to add!");
     } else {
       document.getElementById("todoList").appendChild(li);
+      this.printTodos();
+      this.strikeThrough();
       this.deleteButton();
       this.deleteHandler();
     }
 
-    console.log("My new items", newItems);
+    console.log(this.items);
   };
 
   Main.prototype.strikeThrough = function () {
-    var list = document.querySelector("UL");
-    list.addEventListener("click", function (event) {
-      var x = event.target;
+    var _this = this;
 
-      if (x.tagName === "LI") {
-        x.classList.toggle("checked");
-      }
-    });
+    var list = document.getElementsByTagName("LI");
+
+    var _loop_2 = function _loop_2(i) {
+      document.getElementById("list" + i).addEventListener("click", function () {
+        var x = event.target;
+
+        if (_this.items[i].IsCompleted == true) {
+          _this.items[i].IsCompleted = false;
+          x.classList.toggle("checked");
+          console.log(_this.items);
+        } else if (_this.items[i].IsCompleted == false) {
+          _this.items[i].IsCompleted = true;
+          x.classList.toggle("checked");
+          console.log(_this.items);
+        }
+      });
+    };
+
+    for (var i = 0; i < list.length; i++) {
+      _loop_2(i);
+    }
   };
 
   Main.prototype.printTodos = function () {
-    var myTodos = this.service.getTodo();
+    var ul = document.getElementById("todoList");
+    ul.innerHTML = "";
 
-    for (var i in myTodos) {
-      if (myTodos.hasOwnProperty(i) === true) {
+    for (var i in this.items) {
+      if (this.items.hasOwnProperty(i) === true) {
         var node = document.createElement("LI");
-        var check = document.createElement("INPUT");
-        check.type = "checkbox";
-        check.id = "myCheckbox";
-        check.value = "";
-        check.checked = myTodos[i].IsCompleted;
-        var textNode = document.createTextNode(myTodos[i].Text);
-        node.appendChild(check);
+        node.setAttribute("id", "list" + i);
+        var textNode = document.createTextNode(this.items[i].Text);
+        node.addEventListener('click', this.strikeThrough);
         node.appendChild(textNode);
-        document.getElementById("todoList").appendChild(node);
+        ul.appendChild(node);
 
-        if (check.checked == true) {
+        if (this.items[i].IsCompleted == true) {
           node.classList.toggle("checked");
         }
       }
@@ -288,13 +325,26 @@ function () {
   Main.prototype.start = function () {
     var _this = this;
 
+    this.items = this.service.getTodo();
+    document.getElementById("sortBtn").addEventListener('click', function () {
+      _this.sortHandler();
+
+      _this.printTodos();
+
+      _this.deleteButton();
+
+      _this.deleteHandler();
+
+      _this.strikeThrough();
+    });
     document.getElementById("addBtn").addEventListener('click', function () {
       return _this.createTodos();
     });
     this.printTodos();
+    console.log(this.items);
     this.strikeThrough();
     this.deleteButton();
-    this.deleteHandler(); // document.getElementById("close").addEventListener('click', () => this.deleteHandler());
+    this.deleteHandler();
   };
 
   return Main;
@@ -329,7 +379,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62495" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61443" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
